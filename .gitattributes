@@ -1,0 +1,12 @@
+# keep the installed package to src/ and data/: tests, tools and CI config stay in the repository only
+/.github              export-ignore
+/tests                export-ignore
+/tools                export-ignore
+/phpunit-higher.xml   export-ignore
+/phpunit-latest.xml   export-ignore
+/phpunit-lower.xml    export-ignore
+/.gitattributes       export-ignore
+/.gitignore           export-ignore
+
+* text=auto eol=lf
+*.gz                  binary

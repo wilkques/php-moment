@@ -1,0 +1,56 @@
+<?php
+
+namespace Wilkques\Moment\Locale\Locales;
+
+use Wilkques\Moment\Locale\Locale;
+
+class Si extends Locale
+{
+    public $abbr = 'si';
+
+    public static function config()
+    {
+        return array(
+            'months' => explode('_', 'ජනවාරි_පෙබරවාරි_මාර්තු_අප්‍රේල්_මැයි_ජූනි_ජූලි_අගෝස්තු_සැප්තැම්බර්_ඔක්තෝබර්_නොවැම්බර්_දෙසැම්බර්'),
+            'monthsShort' => explode('_', 'ජන_පෙබ_මාර්_අප්_මැයි_ජූනි_ජූලි_අගෝ_සැප්_ඔක්_නොවැ_දෙසැ'),
+            'weekdays' => explode('_', 'ඉරිදා_සඳුදා_අඟහරුවාදා_බදාදා_බ්‍රහස්පතින්දා_සිකුරාදා_සෙනසුරාදා'),
+            'weekdaysShort' => explode('_', 'ඉරි_සඳු_අඟ_බදා_බ්‍රහ_සිකු_සෙන'),
+            'weekdaysMin' => explode('_', 'ඉ_ස_අ_බ_බ්‍ර_සි_සෙ'),
+            'weekdaysParseExact' => true,
+            'longDateFormat' => array(
+                'LT' => 'a h:mm', 'LTS' => 'a h:mm:ss', 'L' => 'YYYY/MM/DD', 'LL' => 'YYYY MMMM D',
+                'LLL' => 'YYYY MMMM D, a h:mm', 'LLLL' => 'YYYY MMMM D [වැනි] dddd, a h:mm:ss',
+            ),
+            'calendar' => array(
+                'sameDay' => '[අද] LT[ට]', 'nextDay' => '[හෙට] LT[ට]', 'nextWeek' => 'dddd LT[ට]',
+                'lastDay' => '[ඊයේ] LT[ට]', 'lastWeek' => '[පසුගිය] dddd LT[ට]', 'sameElse' => 'L',
+            ),
+            'relativeTime' => array(
+                'future' => '%sකින්', 'past' => '%sකට පෙර', 's' => 'තත්පර කිහිපය', 'ss' => 'තත්පර %d',
+                'm' => 'මිනිත්තුව', 'mm' => 'මිනිත්තු %d', 'h' => 'පැය', 'hh' => 'පැය %d',
+                'd' => 'දිනය', 'dd' => 'දින %d', 'M' => 'මාසය', 'MM' => 'මාස %d', 'y' => 'වසර', 'yy' => 'වසර %d',
+            ),
+            'dayOfMonthOrdinalParse' => '~\d{1,2} වැනි~u',
+            'meridiemParse' => '~පෙර වරු|පස් වරු|පෙ.ව|ප.ව.~u',
+        );
+    }
+
+    public function ordinal($number, $token = '')
+    {
+        return $number . ' වැනි';
+    }
+
+    public function isPM($input)
+    {
+        return $input === 'ප.ව.' || $input === 'පස් වරු';
+    }
+
+    public function meridiem($hours, $minutes, $isLower)
+    {
+        if ($hours > 11) {
+            return $isLower ? 'ප.ව.' : 'පස් වරු';
+        }
+
+        return $isLower ? 'පෙ.ව.' : 'පෙර වරු';
+    }
+}

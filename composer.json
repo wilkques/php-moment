@@ -1,0 +1,36 @@
+{
+    "name": "wilkques/moment",
+    "description": "A moment.js 2.30.1 + moment-timezone port for PHP: same format tokens, add/diff/startOf semantics, durations, relative time, 138 locales and the bundled IANA time zone data. PHP 5.3 compatible, no dependencies.",
+    "keywords": [
+        "moment",
+        "date",
+        "time",
+        "datetime",
+        "duration",
+        "timezone",
+        "locale"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=5.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Wilkques\\Moment\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Wilkques\\Moment\\Tests\\": "tests/"
+        }
+    },
+    "suggest": {
+        "ext-mbstring": "Exact lower-casing of non-ASCII names when parsing locale month/weekday names",
+        "ext-intl": "Lets tz.guess() score the host zone's abbreviation from ICU long names, as JavaScript does",
+        "ext-zlib": "Needed only to run the gzipped locale fixtures in the test suite"
+    }
+}
