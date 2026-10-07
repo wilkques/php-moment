@@ -403,6 +403,30 @@ English | [繁體中文](README_ZH.md)
     // output: true
     ```
 
+1. comparing and sorting: compare `valueOf()` or use the `is*` methods, not `==`
+
+    ```php
+
+    $a = Moment::utc('2024-01-01');
+    $b = Moment::utc('2024-06-01');
+    $same = Moment::parseZone('2024-01-01T08:00:00+08:00');   // the same instant as $a, written in another offset
+
+    $a->valueOf() < $b->valueOf();       // true:  compare the milliseconds
+    $a->isSame($same);                   // true:  the same instant
+    $a == $same;                         // false: == compares the objects' properties, not the instant: don't use it
+    $a->diff($b) < 0;                    // true:  diff() is negative when $a is earlier
+
+    $list = array($b, $a);
+    usort($list, function ($x, $y) {
+        return $x->valueOf() < $y->valueOf() ? -1 : ($x->valueOf() > $y->valueOf() ? 1 : 0);
+    });
+    $list[0]->format('YYYY-MM-DD');
+    // output: 2024-01-01
+
+    Moment::utc('2024-01-01T00:00:00.001')->isAfter($a, 'day');    // false: compared at day granularity
+    Moment::utc('2024-01-01T23:00')->isSame($a, 'day');            // true
+    ```
+
 1. `isValid`, `isUtc`, `isLocal`, `isUtcOffset`, `isDST`, `zoneAbbr`, `zoneName`
 
     ```php
