@@ -1,6 +1,6 @@
 <?php
 
-namespace Wilkques\Moment\Tests\Units\Php\Higher;
+namespace Wilkques\Moment\Tests\Units;
 
 use PHPUnit\Framework\TestCase;
 use Wilkques\Moment\Duration;

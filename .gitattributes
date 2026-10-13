@@ -2,9 +2,7 @@
 /.github              export-ignore
 /tests                export-ignore
 /tools                export-ignore
-/phpunit-higher.xml   export-ignore
-/phpunit-latest.xml   export-ignore
-/phpunit-lower.xml    export-ignore
+/phpunit.xml          export-ignore
 /.gitattributes       export-ignore
 /.gitignore           export-ignore
 

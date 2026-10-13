@@ -15,46 +15,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # php: the PHP version, phpunit: the PHPUnit constraint that supports it,
-        # config: which phpunit-*.xml to use (lower: 5.3-7.0, higher: 7.1-8.0, latest: 8.1+)
-        include:
-          - { php: '5.3', phpunit: '^4.8', config: lower }
-          - { php: '5.4', phpunit: '^4.8', config: lower }
-          - { php: '5.5', phpunit: '^4.8', config: lower }
-          - { php: '5.6', phpunit: '^5.7', config: lower }
-          - { php: '7.0', phpunit: '^6.5', config: lower }
-          - { php: '7.1', phpunit: '^7.5', config: higher }
-          - { php: '7.2', phpunit: '^8.5', config: higher }
-          - { php: '7.3', phpunit: '^9.6', config: higher }
-          - { php: '7.4', phpunit: '^9.6', config: higher }
-          - { php: '8.0', phpunit: '^9.6', config: higher }
-          - { php: '8.1', phpunit: '^10.5', config: latest }
-          - { php: '8.2', phpunit: '^11.0', config: latest }
-          - { php: '8.3', phpunit: '^12.0', config: latest }
-          - { php: '8.4', phpunit: '*', config: latest }
+        php-versions: ['5.3', '5.4', '5.5', '5.6', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4']
 
-    name: PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php-versions }}
 
     steps:
     - uses: actions/checkout@v4
 
-    # zlib is needed for the gzipped fixtures, mbstring for the exact lower-casing tests
+    # zlib is needed for the gzipped fixtures, mbstring for the exact lower-casing tests, intl for the ICU guess test
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php }}
-        extensions: zlib, mbstring
+        php-version: ${{ matrix.php-versions }}
+        extensions: mbstring, intl, zlib
         ini-values: memory_limit=1G
         coverage: none
-        tools: composer
 
-    - name: Install PHPUnit
-      run: |
-        composer config platform.php ${{ matrix.php }}.99
-        composer require --dev "phpunit/phpunit:${{ matrix.phpunit }}" -W --no-interaction --no-progress
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction
 
     - name: Run tests
-      run: vendor/bin/phpunit -c phpunit-${{ matrix.config }}.xml
+      run: vendor/bin/phpunit
 
   test-32bit:
     # a 32-bit PHP (int is 31 bits wide): timestamps are whole-number floats there
@@ -73,7 +54,7 @@ jobs:
           composer require --dev phpunit/phpunit:'^5.7' -W --no-interaction --no-progress -q"
 
     - name: Run tests
-      run: docker run --rm -v "$PWD":/w -w /w i386/php:5.6-cli php vendor/bin/phpunit -c phpunit-lower.xml
+      run: docker run --rm -v "$PWD":/w -w /w i386/php:5.6-cli php vendor/bin/phpunit
 
   fixtures:
     # the golden data must still be what the real moment.js produces: regenerate and compare

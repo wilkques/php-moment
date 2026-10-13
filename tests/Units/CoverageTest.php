@@ -1,6 +1,6 @@
 <?php
 
-namespace Wilkques\Moment\Tests\Units\Php\Higher;
+namespace Wilkques\Moment\Tests\Units;
 
 use PHPUnit\Framework\TestCase;
 use Wilkques\Moment\Calendar;
@@ -16,7 +16,7 @@ class CoverageLowerProbe extends Locale
 {
     public static function fallback($s)
     {
-        return preg_replace_callback('/[^\x00-\x7F]/u', array('Wilkques\Moment\Tests\Units\Php\Higher\CoverageLowerProbe', 'lowerChar'), strtolower($s));
+        return preg_replace_callback('/[^\x00-\x7F]/u', array('Wilkques\Moment\Tests\Units\CoverageLowerProbe', 'lowerChar'), strtolower($s));
     }
 }
 
