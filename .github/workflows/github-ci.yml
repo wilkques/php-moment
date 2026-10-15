@@ -35,7 +35,11 @@ jobs:
       run: composer install --prefer-dist --no-progress --no-interaction
 
     - name: Run tests
-      run: vendor/bin/phpunit
+      run: |
+        # PHPUnit 10.5+ reads phpunit.10.xml, older majors phpunit.xml
+        major=$(vendor/bin/phpunit --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 | cut -d. -f1)
+        if [ "$major" -ge 10 ]; then cfg=phpunit.10.xml; else cfg=phpunit.xml; fi
+        vendor/bin/phpunit -c "$cfg"
 
   test-32bit:
     # a 32-bit PHP (int is 31 bits wide): timestamps are whole-number floats there

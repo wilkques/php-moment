@@ -138,7 +138,22 @@ class Fixtures
             return array(1, 1);
         }
 
+        // since tzdata 2024b EST, MST and HST are links to Panama, Phoenix and Honolulu, so newer ICU names them "EST" etc.; older ICU says "GMT-05:00"
+        if (in_array($c['tz'], array('EST', 'MST', 'HST')) && self::icuTzdataBefore('2024b')) {
+            return array(1, 1);
+        }
+
         return self::guessHost($c, null);
+    }
+
+    /** true when the answer comes from ext-intl (not the bundled table) and its tzdata is older than $version (e.g. '2024b') */
+    protected static function icuTzdataBefore($version)
+    {
+        if (Tz::$withoutIntl || !class_exists('IntlTimeZone')) {
+            return false;
+        }
+
+        return strcmp(\IntlTimeZone::getTZDataVersion(), $version) < 0;
     }
 
     /** the same cases again with ext-intl hidden, so the bundled table answers */
