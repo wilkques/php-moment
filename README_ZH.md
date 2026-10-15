@@ -17,7 +17,7 @@
 1. php >= 5.3，32 位元或 64 位元皆可。時間戳是整數毫秒：64 位元上是 `int`，32 位元上是存放整數值的 `float`（float 到 2^53 都精確，JavaScript 自己的上限是 8.64e15），所以那裡的 `valueOf()` 與 `unix()` 可能回傳 float。
 1. 不需要任何擴充或套件。可選：
     - `ext-mbstring`：沒有它時，解析大寫的非 ASCII 名稱（`parse('MÄRZ', 'MMMM')`）會改用內建的小寫對照表，只涵蓋拉丁、希臘、斯拉夫、亞美尼亞與喬治亞文字。
-    - `ext-intl`：讓 `Tz::guess()` 像 JavaScript 一樣，用 ICU 名稱替主機時區的縮寫計分。
+    - `ext-intl`：選用；有沒有它，`Tz::guess()` 都會像 JavaScript 一樣用 ICU 名稱替主機時區的縮寫計分（沒有時改用內建的 `data/guess-abbrs.php`）。
     - `ext-zlib`：只有執行測試套件的 gzip fixtures 時需要。
 
 ## 如何使用
@@ -761,7 +761,7 @@
 
 ## 與 moment.js 的已知差異
 
-- `tz.guess()` 在 moment-timezone 認得 PHP 預設時區名稱時直接用它（等同 moment-timezone 用 Intl 回報的名稱）；否則執行 moment-timezone 的 offset 計分搜尋。有 `ext-intl` 時，搜尋會像 moment-timezone 用 `toTimeString()` 那樣，從 ICU 的英文長名稱取出主機縮寫一起計分（同一個時區的名稱在不同 ICU 版本可能不同，例如 `Eire`）；沒有 intl 時只看 offset，`CET` 之類少數舊式時區會不同。`Tz::$guessUseAbbr = false` 強制只看 offset，`true` 在沒有 intl 時改用 PHP 自己的縮寫。
+- `tz.guess()` 在 moment-timezone 認得 PHP 預設時區名稱時直接用它（等同 moment-timezone 用 Intl 回報的名稱）；否則執行 moment-timezone 的 offset 計分搜尋。搜尋會像 moment-timezone 用 `toTimeString()` 那樣，從 ICU 的英文長名稱取出主機縮寫一起計分：有 `ext-intl` 時直接讀 ICU，沒有時用內建的 `data/guess-abbrs.php`（由 `tools/generate-guess-abbrs.js` 產生），所以不需要任何擴充（同一個時區的名稱在不同 ICU 版本可能不同，例如 `Eire`）。`Tz::$guessUseAbbr = false` 強制只看 offset，`true` 對表裡沒有的時區名稱改用 PHP 自己的縮寫。
 - `Moment::$updateOffset` 在與 moment 的 `updateOffset` hook 相同的時機、以相同的 `keepTime` 被呼叫。`Moment::$createFromInputFallback` 收到 `($string, $useUtc)`，回傳像 `array('ms' => $ms)` 的解析結果（invalid 則回 null），而不是 moment 的 `config` 物件。
 - `Moment::locale($name)` / `Registry::get()` 遇到不認得的名稱時退回全域 locale，同 `moment.localeData()`；`Registry::find()` 則回傳 null。無效的 moment 呼叫 `toDate()` 會回傳 `InvalidDate`（`DateTime` 的子類別：`isValid()` 為 false、`getTimestamp()` 為 false、`format()` 回傳 "Invalid Date"），這是 PHP 裡最接近 JavaScript Invalid Date 的東西。
 - 傳給 `tz()` 的時區名稱若 moment-timezone 不認得會被忽略（moment-timezone 也只是記錄錯誤）。
@@ -780,7 +780,7 @@ TZ=UTC node generate-cross-fixtures.js    # locale x zone, weeks, get/set, add/d
 TZ=UTC node generate-extra-fixtures.js    # Duration, calendar() formats, defineLocale/updateLocale
 TZ=UTC node generate-fuzz-fixtures.js     # seeded random chains (FUZZ_SEED / FUZZ_CHAINS / FUZZ_PARSE for bigger runs)
 node generate-guess-fixtures.js           # 每個時區當主機時的 tz.guess()（只看 offset）
-node generate-guess-fixtures.js icu       # 同上，但用英文 ICU 名稱，所以縮寫會計分（PHP 端需要 ext-intl）
+node generate-guess-fixtures.js icu       # 同上，但用英文 ICU 名稱，所以縮寫會計分
 node generate-localefn-fixtures.js        # 直接呼叫各 locale 的函式
 node generate-tzdata.js                   # 由 moment-timezone 產生 data/latest.php
 
@@ -789,7 +789,7 @@ tools/run-matrix.sh                       # 用 docker 跑每個 PHP 版本（�
 php tools/locale-check.php ru de          # 單一 locale，附不一致的細節
 ```
 
-locale 的 fixtures 是 gzip 壓縮的：locale 測試需要 zlib 擴充，沒有時會略過；ICU 的 guess 測試沒有 ext-intl 時會略過。
+locale 的 fixtures 是 gzip 壓縮的：locale 測試需要 zlib 擴充，沒有時會略過。
 
 `src/` 的行覆蓋率（PHP 8.4，pcov、intl、mbstring 皆有）：核心 99.2%，locale 99.8%。剩下的是只會在其他環境執行的程式（PHP 5.3 的後備、moment-timezone 不認得的主機時區），或沒有任何輸入能到達的分支（從 JavaScript 移植過來但觸發不了的部分）。
 

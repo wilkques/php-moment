@@ -79,10 +79,15 @@ class FixturesTest extends TestCase
         if (!in_array('compress.zlib', stream_get_wrappers())) {
             $this->markTestSkipped('the fixtures are gzipped: needs the zlib extension');
         }
-        if (!class_exists('IntlTimeZone')) {
-            $this->markTestSkipped('scoring the host abbreviation needs ext-intl');
-        }
         $this->check('guess-icu');
+    }
+
+    public function testGuessWithTheBundledAbbreviations()
+    {
+        if (!in_array('compress.zlib', stream_get_wrappers())) {
+            $this->markTestSkipped('the fixtures are gzipped: needs the zlib extension');
+        }
+        $this->check('guess-table');
     }
 
     public function testCrossProducts()

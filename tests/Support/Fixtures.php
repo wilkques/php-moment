@@ -23,6 +23,7 @@ class Fixtures
 
     public static function load($name)
     {
+        $name = $name === 'guess-table' ? 'guess-icu' : $name; // the same cases, answered from the bundled table
         $file = dirname(__DIR__) . '/fixtures/' . $name . '.json';
         if (!is_file($file)) {
             $file = 'compress.zlib://' . $file . '.gz'; // the bigger ones are gzipped
@@ -130,14 +131,26 @@ class Fixtures
         return self::guessHost($c, false);
     }
 
-    /** the same with English ICU names: the abbreviation counts, which needs ext-intl (a few zones differ between ICU releases) */
+    /** the same with English ICU names: the abbreviation counts, from ext-intl when present, else the bundled table (a few zones differ between ICU releases) */
     protected static function guessIcu($c)
     {
-        if (!class_exists('IntlTimeZone') || $c['tz'] === 'Eire') {
+        if ($c['tz'] === 'Eire') {
             return array(1, 1);
         }
 
         return self::guessHost($c, null);
+    }
+
+    /** the same cases again with ext-intl hidden, so the bundled table answers */
+    protected static function guessTable($c)
+    {
+        Tz::$withoutIntl = true;
+        try {
+            return self::guessIcu($c);
+        } catch (\Exception $e) {
+            Tz::$withoutIntl = false;
+            throw $e;
+        }
     }
 
     protected static function guessHost($c, $useAbbr)
@@ -161,6 +174,7 @@ class Fixtures
         $got = Tz::guess(true);
         Tz::$guessByName = true;
         Tz::$guessUseAbbr = null;
+        Tz::$withoutIntl = false;
         date_default_timezone_set('UTC');
 
         return array($got, $c['guess']);

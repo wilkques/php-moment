@@ -11,7 +11,7 @@ spl_autoload_register(function ($c) {
     }
 });
 use Wilkques\Moment\Tests\Support\Fixtures;
-$suites = array_slice($argv, 1) ?: array('format', 'add', 'start-end', 'diff', 'parse', 'duration', 'relative', 'fallback', 'api', 'tzcheck', 'guess', 'guess-icu', 'cross', 'fuzz', 'extra', 'gaps');
+$suites = array_slice($argv, 1) ?: array('format', 'add', 'start-end', 'diff', 'parse', 'duration', 'relative', 'fallback', 'api', 'tzcheck', 'guess', 'guess-icu', 'guess-table', 'cross', 'fuzz', 'extra', 'gaps');
 function firstDiffs($a, $b, $path = '', &$out = array(), $limit = 4)
 {
     if (count($out) >= $limit) return $out;

@@ -552,5 +552,27 @@ class CoverageTest extends TestCase
         Tz::$guessByName = true;
         date_default_timezone_set('UTC');
         $this->assertSame('America/New_York', $guess);
+
+        // the bundled table: standard and daylight names by the host's DST flag, and a name it lacks
+        $abbr = new \ReflectionMethod('Wilkques\\Moment\\Timezone\\Tz', 'hostAbbr');
+        $abbr->setAccessible(true);
+        $winter = new \DateTime('2024-01-15 12:00:00', new \DateTimeZone('America/New_York'));
+        $summer = new \DateTime('2024-07-15 12:00:00', new \DateTimeZone('America/New_York'));
+        Tz::$withoutIntl = true;
+        Tz::$guessUseAbbr = null;
+        $got = array(
+            $abbr->invoke(null, 'America/New_York', 0, $winter),
+            $abbr->invoke(null, 'America/New_York', 0, $summer),
+            $abbr->invoke(null, 'Africa/Abidjan', 0, $winter), // ICU has no ASCII abbreviation for it
+            $abbr->invoke(null, 'Not/AZone', 0, $summer),
+        );
+        Tz::$guessUseAbbr = true;
+        $got[] = $abbr->invoke(null, 'Not/AZone', 0, $summer); // PHP's own "T" for a name the table lacks: "EDT"
+        $got[] = $abbr->invoke(null, 'America/New_York', 0, $summer);
+        Tz::$guessUseAbbr = false;
+        $got[] = $abbr->invoke(null, 'America/New_York', 0, $summer);
+        Tz::$withoutIntl = false;
+        Tz::$guessUseAbbr = null;
+        $this->assertSame(array('EST', 'EDT', null, null, 'EDT', 'EDT', null), $got);
     }
 }

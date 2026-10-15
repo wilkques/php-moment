@@ -17,7 +17,7 @@ English | [繁體中文](README_ZH.md)
 1. php >= 5.3, 32-bit or 64-bit. Timestamps are whole milliseconds: `int` on 64-bit, a `float` holding a whole number on 32-bit (a float is exact up to 2^53, JavaScript's own limit is 8.64e15), so `valueOf()` and `unix()` can return a float there.
 1. No required extensions or packages. Optional:
     - `ext-mbstring`: without it, matching upper-case non-ASCII names when parsing (`parse('MÄRZ', 'MMMM')`) uses a built-in lower-casing table for Latin, Greek, Cyrillic, Armenian and Georgian only.
-    - `ext-intl`: lets `Tz::guess()` score the host zone's abbreviation from ICU names, as JavaScript does.
+    - `ext-intl`: optional; `Tz::guess()` scores the host zone's abbreviation from ICU names with or without it (a bundled table, `data/guess-abbrs.php`, stands in).
     - `ext-zlib`: only to run the gzipped fixtures of the test suite.
 
 ## How to use
@@ -761,7 +761,7 @@ Deprecated spellings (`lang()`, `zone()`, instance `min()` / `max()`, `moment.la
 
 ## Known differences from moment.js
 
-- `tz.guess()` answers from PHP's default time zone name when moment-timezone knows it (as it does with Intl's); otherwise it runs moment-timezone's offset-scoring search. With `ext-intl` the search scores the host abbreviation from ICU's English long names exactly as moment-timezone does with `toTimeString()` (a zone's name can differ between ICU releases, e.g. `Eire`); without it only offsets decide, which differs for a handful of legacy zones such as `CET`. `Tz::$guessUseAbbr = false` forces offsets only, `true` also uses PHP's own abbreviation when intl is missing.
+- `tz.guess()` answers from PHP's default time zone name when moment-timezone knows it (as it does with Intl's); otherwise it runs moment-timezone's offset-scoring search. The search scores the host abbreviation from ICU's English long names exactly as moment-timezone does with `toTimeString()`: read through `ext-intl` when present, otherwise from the bundled table `data/guess-abbrs.php` (built by `tools/generate-guess-abbrs.js`), so no extension is needed (a zone's name can differ between ICU releases, e.g. `Eire`). `Tz::$guessUseAbbr = false` forces offsets only, `true` also uses PHP's own abbreviation for a zone name missing from the table.
 - `Moment::$updateOffset` is called at the same points and with the same `keepTime` as moment's `updateOffset` hook. `Moment::$createFromInputFallback` receives `($string, $useUtc)` and returns a parse result such as `array('ms' => $ms)`, or null for invalid, rather than moment's `config` object.
 - `Moment::locale($name)` / `Registry::get()` fall back to the global locale for an unknown name, as `moment.localeData()` does; `Registry::find()` returns null instead. `toDate()` on an invalid moment returns an `InvalidDate` (a `DateTime` subclass: `isValid()` is false, `getTimestamp()` is false, `format()` gives "Invalid Date"), the closest PHP has to JavaScript's Invalid Date.
 - Time zone names given to `tz()` that moment-timezone doesn't know are ignored (as in moment-timezone, which logs an error).
@@ -780,7 +780,7 @@ TZ=UTC node generate-cross-fixtures.js    # locale x zone, weeks, get/set, add/d
 TZ=UTC node generate-extra-fixtures.js    # Duration, calendar() formats, defineLocale/updateLocale
 TZ=UTC node generate-fuzz-fixtures.js     # seeded random chains (FUZZ_SEED / FUZZ_CHAINS / FUZZ_PARSE for bigger runs)
 node generate-guess-fixtures.js           # tz.guess() for a host in every zone (offsets only)
-node generate-guess-fixtures.js icu       # the same with English ICU names, so abbreviations count (needs ext-intl in PHP)
+node generate-guess-fixtures.js icu       # the same with English ICU names, so abbreviations count
 node generate-localefn-fixtures.js        # each locale's functions called directly
 node generate-tzdata.js                   # data/latest.php from moment-timezone
 
@@ -789,7 +789,7 @@ tools/run-matrix.sh                       # every PHP version (and a 32-bit one)
 php tools/locale-check.php ru de          # one locale, with details on mismatches
 ```
 
-The locale fixtures are gzipped: the locale tests need the zlib extension and are skipped without it; the ICU guess test is skipped without ext-intl.
+The locale fixtures are gzipped: the locale tests need the zlib extension and are skipped without it.
 
 Line coverage of `src/` (PHP 8.4 with pcov, intl and mbstring): 99.2% for the core and 99.8% for the locales. What's left is code that only runs on other setups (PHP 5.3 fallbacks, a host zone moment-timezone doesn't know) or that no input reaches (branches ported from JavaScript that can't be triggered).
 

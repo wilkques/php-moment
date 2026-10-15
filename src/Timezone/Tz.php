@@ -39,14 +39,17 @@ class Tz
     /**
      * Whether the host's zone abbreviation counts when scoring candidates in guess().
      * JavaScript takes it from the zone's long name via ICU (toTimeString(): "(Central Standard Time)" -> CST).
-     *   null  (default) use ext-intl's ICU names the same way; without intl only offsets decide
+     *   null  (default) ICU's names via ext-intl, else the bundled table (data/guess-abbrs.php, built from the same names)
      *   false only offsets decide
-     *   true  like null, but without intl fall back to PHP's own abbreviation ("T": CST, EST)
+     *   true  like null, plus PHP's own abbreviation ("T": CST, EST) for a zone name missing from the table
      */
     public static $guessUseAbbr = null;
 
     /** @internal tests: act as if ext-intl were missing */
     public static $withoutIntl = false;
+
+    /** @var array|null zone name => array(standard, daylight) host abbreviation, loaded on first use */
+    protected static $guessAbbrs = null;
 
     protected static function boot()
     {
@@ -343,6 +346,14 @@ class Tz
 
             return $abbr === 'GMT' ? null : $abbr;
         }
+        if (self::$guessAbbrs === null) {
+            self::$guessAbbrs = require dirname(dirname(__DIR__)) . '/data/guess-abbrs.php';
+        }
+        if (isset(self::$guessAbbrs[$name])) {
+            $pair = self::$guessAbbrs[$name];
+
+            return self::hostIsDst($d) ? $pair[1] : $pair[0];
+        }
         if (self::$guessUseAbbr === true) {
             $abbr = $d->format('T');
 
@@ -350,6 +361,20 @@ class Tz
         }
 
         return null;
+    }
+
+    /**
+     * Whether ICU would call $d's offset daylight time: above the zone's smaller offset of that year. PHP's "I" flag
+     * is no help for Europe/Dublin, whose tzdata treats the winter GMT as the daylight saving.
+     */
+    protected static function hostIsDst(\DateTime $d)
+    {
+        $tz = $d->getTimezone();
+        $year = (int) $d->format('Y');
+        $jan = $tz->getOffset(new \DateTime($year . '-01-01 12:00:00', $tz));
+        $jul = $tz->getOffset(new \DateTime($year . '-07-01 12:00:00', $tz));
+
+        return $d->getOffset() > min($jan, $jul);
     }
 
     /** the host's local midnight of the first of month $month0 (0-based, may exceed 11) of $year, as ms */
