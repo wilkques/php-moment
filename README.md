@@ -2,6 +2,7 @@
 
 [![Latest Stable Version](https://poser.pugx.org/wilkques/moment/v/stable)](https://packagist.org/packages/wilkques/moment)
 [![License](https://poser.pugx.org/wilkques/moment/license)](https://packagist.org/packages/wilkques/moment)
+[![Tests](https://github.com/wilkques/php-moment/actions/workflows/github-ci.yml/badge.svg)](https://github.com/wilkques/php-moment/actions/workflows/github-ci.yml)
 
 English | [繁體中文](README_ZH.md)
 
@@ -784,13 +785,19 @@ node generate-guess-fixtures.js icu       # the same with English ICU names, so 
 node generate-localefn-fixtures.js        # each locale's functions called directly
 node generate-tzdata.js                   # data/latest.php from moment-timezone
 
-vendor/bin/phpunit  # PHP 5.3 - 8.0
-vendor/bin/phpunit -c phpunit.10.xml        # PHPUnit 10+ (PHP 8.1+)
+vendor/bin/phpunit                        # PHP 5.3 - 8.0
+vendor/bin/phpunit -c phpunit.10.xml      # PHPUnit 10+ (PHP 8.1+)
 tools/run-matrix.sh                       # every PHP version (and a 32-bit one) in docker, from /var/www/packages
 php tools/locale-check.php ru de          # one locale, with details on mismatches
 ```
 
 The locale fixtures are gzipped: the locale tests need the zlib extension and are skipped without it.
+
+CI (`.github/workflows/github-ci.yml`, "TESTS") runs three jobs:
+
+1. `test`: every push to master and every pull request, on PHP 5.3 to 8.4 (14 versions) set up with `setup-php` and the mbstring, intl and zlib extensions. It uses `phpunit.10.xml` for PHPUnit 10+ and `phpunit.xml` otherwise. With ext-intl, the ICU guess test depends on the host ICU's tzdata: EST/MST/HST are skipped when it predates 2024b, and Eire always is.
+2. `test-32bit`: PHP 5.6 32-bit (`i386/php` in docker).
+3. `fixtures`: regenerates `data/latest.php` from moment-timezone with Node 20 and checks that it matches the committed copy. It is allowed to fail (`continue-on-error`): a failure means a new tz data release to regenerate, not a bug.
 
 Line coverage of `src/` (PHP 8.4 with pcov, intl and mbstring): 99.2% for the core and 99.8% for the locales. What's left is code that only runs on other setups (PHP 5.3 fallbacks, a host zone moment-timezone doesn't know) or that no input reaches (branches ported from JavaScript that can't be triggered).
 

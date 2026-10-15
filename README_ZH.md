@@ -2,6 +2,7 @@
 
 [![Latest Stable Version](https://poser.pugx.org/wilkques/moment/v/stable)](https://packagist.org/packages/wilkques/moment)
 [![License](https://poser.pugx.org/wilkques/moment/license)](https://packagist.org/packages/wilkques/moment)
+[![Tests](https://github.com/wilkques/php-moment/actions/workflows/github-ci.yml/badge.svg)](https://github.com/wilkques/php-moment/actions/workflows/github-ci.yml)
 
 [English](README.md) | 繁體中文
 
@@ -784,13 +785,19 @@ node generate-guess-fixtures.js icu       # 同上，但用英文 ICU 名稱，�
 node generate-localefn-fixtures.js        # 直接呼叫各 locale 的函式
 node generate-tzdata.js                   # 由 moment-timezone 產生 data/latest.php
 
-vendor/bin/phpunit  # PHP 5.3 - 8.0
-vendor/bin/phpunit -c phpunit.10.xml        # PHPUnit 10+（PHP 8.1+）
+vendor/bin/phpunit                        # PHP 5.3 - 8.0
+vendor/bin/phpunit -c phpunit.10.xml      # PHPUnit 10+（PHP 8.1+）
 tools/run-matrix.sh                       # 用 docker 跑每個 PHP 版本（含 32 位元）（在 /var/www/packages 執行）
 php tools/locale-check.php ru de          # 單一 locale，附不一致的細節
 ```
 
 locale 的 fixtures 是 gzip 壓縮的：locale 測試需要 zlib 擴充，沒有時會略過。
+
+CI（`.github/workflows/github-ci.yml`，名稱 "TESTS"）有三個 job：
+
+1. `test`：每次推送到 master 與每個 pull request，在 PHP 5.3 到 8.4（共 14 個版本）上以 `setup-php` 安裝 mbstring、intl、zlib 擴充後執行。PHPUnit 10+ 使用 `phpunit.10.xml`，其他版本使用 `phpunit.xml`。有 ext-intl 時，ICU 的 guess 測試取決於主機 ICU 的 tzdata：早於 2024b 時會略過 EST/MST/HST，Eire 則一律略過。
+2. `test-32bit`：PHP 5.6 32 位元（docker 內的 `i386/php`）。
+3. `fixtures`：用 Node 20 由 moment-timezone 重新產生 `data/latest.php`，並檢查是否與已提交的內容一致。此 job 允許失敗（`continue-on-error`）：失敗代表 tz 資料有新版本需要重新產生，不是程式錯誤。
 
 `src/` 的行覆蓋率（PHP 8.4，pcov、intl、mbstring 皆有）：核心 99.2%，locale 99.8%。剩下的是只會在其他環境執行的程式（PHP 5.3 的後備、moment-timezone 不認得的主機時區），或沒有任何輸入能到達的分支（從 JavaScript 移植過來但觸發不了的部分）。
 
