@@ -784,7 +784,8 @@ node generate-guess-fixtures.js icu       # 同上，但用英文 ICU 名稱，�
 node generate-localefn-fixtures.js        # 直接呼叫各 locale 的函式
 node generate-tzdata.js                   # 由 moment-timezone 產生 data/latest.php
 
-vendor/bin/phpunit  # 所有 PHP 版本
+vendor/bin/phpunit  # PHP 5.3 - 8.0
+vendor/bin/phpunit -c phpunit.10.xml        # PHPUnit 10+（PHP 8.1+）
 tools/run-matrix.sh                       # 用 docker 跑每個 PHP 版本（含 32 位元）（在 /var/www/packages 執行）
 php tools/locale-check.php ru de          # 單一 locale，附不一致的細節
 ```

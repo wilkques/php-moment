@@ -3,6 +3,7 @@
 /tests                export-ignore
 /tools                export-ignore
 /phpunit.xml          export-ignore
+/phpunit.10.xml       export-ignore
 /.gitattributes       export-ignore
 /.gitignore           export-ignore
 

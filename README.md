@@ -784,7 +784,8 @@ node generate-guess-fixtures.js icu       # the same with English ICU names, so 
 node generate-localefn-fixtures.js        # each locale's functions called directly
 node generate-tzdata.js                   # data/latest.php from moment-timezone
 
-vendor/bin/phpunit  # all PHP versions
+vendor/bin/phpunit  # PHP 5.3 - 8.0
+vendor/bin/phpunit -c phpunit.10.xml        # PHPUnit 10+ (PHP 8.1+)
 tools/run-matrix.sh                       # every PHP version (and a 32-bit one) in docker, from /var/www/packages
 php tools/locale-check.php ru de          # one locale, with details on mismatches
 ```
