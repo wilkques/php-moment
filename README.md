@@ -795,7 +795,7 @@ The locale fixtures are gzipped: the locale tests need the zlib extension and ar
 
 CI (`.github/workflows/github-ci.yml`, "TESTS") runs three jobs:
 
-1. `test`: every push to master and every pull request, on PHP 5.3 to 8.4 (14 versions) set up with `setup-php` and the mbstring, intl and zlib extensions. It uses `phpunit.10.xml` for PHPUnit 10+ and `phpunit.xml` otherwise. With ext-intl, the ICU guess test depends on the host ICU's tzdata: EST/MST/HST are skipped when it predates 2024b, and Eire always is.
+1. `test`: every push to master and every pull request, on PHP 5.3 to 8.4 (14 versions) set up with `setup-php` and the mbstring, intl and zlib extensions. It uses `phpunit.10.xml` for PHPUnit 10+ and `phpunit.xml` otherwise. With ext-intl, the ICU guess test depends on the host ICU's tzdata: zones whose names in the host ICU differ from those in the ICU that generated the fixtures are skipped.
 2. `test-32bit`: PHP 5.6 32-bit (`i386/php` in docker).
 3. `fixtures`: regenerates `data/latest.php` from moment-timezone with Node 20 and checks that it matches the committed copy. It is allowed to fail (`continue-on-error`): a failure means a new tz data release to regenerate, not a bug.
 

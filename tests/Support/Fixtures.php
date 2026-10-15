@@ -134,26 +134,54 @@ class Fixtures
     /** the same with English ICU names: the abbreviation counts, from ext-intl when present, else the bundled table (a few zones differ between ICU releases) */
     protected static function guessIcu($c)
     {
+        // Eire is a link to Dublin whose ICU names agree with the table, yet Node's fixture picks Lagos (it ties on offsets and abbreviations)
         if ($c['tz'] === 'Eire') {
             return array(1, 1);
         }
 
-        // since tzdata 2024b EST, MST and HST are links to Panama, Phoenix and Honolulu, so newer ICU names them "EST" etc.; older ICU says "GMT-05:00"
-        if (in_array($c['tz'], array('EST', 'MST', 'HST')) && self::icuTzdataBefore('2024b')) {
+        if (self::icuNamesDiffer($c['tz'])) {
             return array(1, 1);
         }
 
         return self::guessHost($c, null);
     }
 
-    /** true when the answer comes from ext-intl (not the bundled table) and its tzdata is older than $version (e.g. '2024b') */
-    protected static function icuTzdataBefore($version)
+    /**
+     * true when the answer comes from ext-intl and this host's ICU names the zone differently from the ICU that made
+     * the fixtures (and data/guess-abbrs.php) at any instant guess() samples: then no match can be expected. Only the
+     * host zone's abbreviation comes from ICU; the candidates' come from moment's own data.
+     */
+    protected static function icuNamesDiffer($name)
     {
         if (Tz::$withoutIntl || !class_exists('IntlTimeZone')) {
             return false;
         }
+        try {
+            new \DateTimeZone($name);
+        } catch (\Exception $e) {
+            return false; // guessHost skips it anyway
+        }
+        $method = new \ReflectionMethod('Wilkques\\Moment\\Timezone\\Tz', 'userOffsets');
+        $method->setAccessible(true);
 
-        return strcmp(\IntlTimeZone::getTZDataVersion(), $version) < 0;
+        Tz::$guessByName = false;
+        Tz::$guessUseAbbr = null;
+        date_default_timezone_set($name);
+        $viaIntl = array();
+        $viaTable = array();
+        foreach ($method->invoke(null) as $o) {
+            $viaIntl[] = $o['abbr'];
+        }
+        Tz::$withoutIntl = true;
+        foreach ($method->invoke(null) as $o) {
+            $viaTable[] = $o['abbr'];
+        }
+        Tz::$withoutIntl = false;
+        Tz::$guessByName = true;
+        Tz::$guessUseAbbr = null;
+        date_default_timezone_set('UTC');
+
+        return $viaIntl !== $viaTable;
     }
 
     /** the same cases again with ext-intl hidden, so the bundled table answers */

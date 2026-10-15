@@ -795,7 +795,7 @@ locale 的 fixtures 是 gzip 壓縮的：locale 測試需要 zlib 擴充，沒�
 
 CI（`.github/workflows/github-ci.yml`，名稱 "TESTS"）有三個 job：
 
-1. `test`：每次推送到 master 與每個 pull request，在 PHP 5.3 到 8.4（共 14 個版本）上以 `setup-php` 安裝 mbstring、intl、zlib 擴充後執行。PHPUnit 10+ 使用 `phpunit.10.xml`，其他版本使用 `phpunit.xml`。有 ext-intl 時，ICU 的 guess 測試取決於主機 ICU 的 tzdata：早於 2024b 時會略過 EST/MST/HST，Eire 則一律略過。
+1. `test`：每次推送到 master 與每個 pull request，在 PHP 5.3 到 8.4（共 14 個版本）上以 `setup-php` 安裝 mbstring、intl、zlib 擴充後執行。PHPUnit 10+ 使用 `phpunit.10.xml`，其他版本使用 `phpunit.xml`。有 ext-intl 時，ICU 的 guess 測試取決於主機 ICU 的 tzdata：主機 ICU 的名稱與產生 fixtures 時的 ICU 不同的時區會跳過。
 2. `test-32bit`：PHP 5.6 32 位元（docker 內的 `i386/php`）。
 3. `fixtures`：用 Node 20 由 moment-timezone 重新產生 `data/latest.php`，並檢查是否與已提交的內容一致。此 job 允許失敗（`continue-on-error`）：失敗代表 tz 資料有新版本需要重新產生，不是程式錯誤。
 
